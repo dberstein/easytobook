@@ -1,6 +1,170 @@
 <?php
 
-class tictactoe
+/**
+ * view
+ */
+class view
+{
+    /**
+     * Singleton instance
+     *
+     * @var self
+     */
+    static protected $_instance;
+
+    /**
+     * Temporary storage for content
+     *
+     * @var array|null
+     */
+    protected $_html;
+
+    /**
+     * Constructor
+     *
+     * @return self
+     */
+    protected function __construct()
+    {
+        $this->_html = array(
+            'title' => null,
+            'style' => null,
+            'body' => null,
+        );
+    }
+
+    /**
+     * Return singleton instance
+     *
+     * @return self
+     */
+    static public function getInstance()
+    {
+        if (!self::$_instance) {
+            self::$_instance = new self;
+        }
+
+        return self::$_instance;
+    }
+
+    /**
+     * Returns string representation of view's content into a hardcoded HTML
+     * layout
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        $title = $this->_html['title'];
+        $body = $this->_html['body'];
+        $style = $this->_html['style'];
+
+        return <<<EOT
+<html>
+  <head>
+    <title>{$title}</title>
+    <style>{$style}</style>
+  </head>
+  <body>
+{$body}
+  </body>
+</html>
+EOT;
+    }
+
+    /**
+     * Catches calls to methods of the form "addXXX" and redirects them to
+     * protected method "_setXXX".
+     *
+     * @return string
+     */
+    public function __call($name, $args)
+    {
+        if (preg_match('/^add([A-Z].+)$/', $name, $matches)) {
+            $cb = array($this, '_set' . $matches[1]);
+            if (is_callable($cb)) {
+                return call_user_func_array($cb, $args);
+            }
+        }
+    }
+
+    /**
+     * Sets the layout's HTML title
+     *
+     * @param string $data
+     *
+     * @return void
+     */
+    protected function _setTitle($data)
+    {
+        $this->_html['title'] = $data;
+    }
+
+    /**
+     * Sets the layout's HTML inline CSS style
+     *
+     * @param string $data
+     *
+     * @return void
+     */
+    protected function _setStyle($data)
+    {
+        $this->_html['style'] = $data;
+    }
+
+    /**
+     * Sets the layout's HTML body
+     *
+     * @param string $data
+     *
+     * @return void
+     */
+    protected function _setBody($data)
+    {
+        $this->_html['body'] = $data;
+    }
+
+    /**
+     * Appends to the layout's HTML body a form element
+     *
+     * @param string $uri    The action URI for the form
+     * @param string $method The method for the form
+     * @param string $body   The innerHTML of the form
+     *
+     * @return void
+     */
+    protected function _setForm($uri, $method, $body)
+    {
+        $this->_html['body'] .= sprintf(
+            '<form action="%s" method="%s">%s</form>',
+            htmlentities($uri),
+            htmlentities($method),
+            $body
+        );
+    }
+
+    /**
+     * Appends to the layout's HTML body a div element
+     *
+     * @param string $class  CSS class for the div
+     * @param string $body   The innerHTML of the div
+     *
+     * @return void
+     */
+    protected function _setDiv($class, $body)
+    {
+        $this->_html['body'] .= sprintf(
+            '<div class="%s">%s</div>',
+            htmlentities($class),
+            $body
+        );
+    }
+}
+
+/**
+ * model
+ */
+class model
 {
     /**
      * Size of grid
@@ -9,12 +173,39 @@ class tictactoe
      */
     const GRID_SIZE = 3;
 
+    /**
+     * Value that represent empty
+     *
+     * @var int
+     */
     const EMPTY_VALUE = 0;
 
+    /**
+     * String for displaying human's cells
+     *
+     * @var string
+     */
     const HUMAN_MARKER = 'O';
+
+    /**
+     * Value that represent a cell selected by the human
+     *
+     * @var int
+     */
     const HUMAN_VALUE = 1;
 
+    /**
+     * String for displaying machine's cells
+     *
+     * @var string
+     */
     const MACHINE_MARKER = 'X';
+
+    /**
+    * Value that represent a cell selected by the machiune
+     *
+     * @var int
+     */
     const MACHINE_VALUE = -1;
 
     /**
@@ -114,6 +305,13 @@ class tictactoe
      */
     protected $_fieldName;
 
+    /**
+     * Constructor
+     *
+     * @parm $fieldName Name of the HTML form field for the board
+     *
+     * @return self
+     */
     public function __construct($fieldName = 'game')
     {
         // Fetch/build playing grid
@@ -204,6 +402,13 @@ class tictactoe
         return false;
     }
 
+    /**
+     * Returns normalized array that represents the board.
+     *
+     * @param array $game
+     *
+     * @return array
+     */
     protected function _build(array $game = array())
     {
         for ($i = 0; $i < self::GRID_SIZE; $i++) {
@@ -217,6 +422,11 @@ class tictactoe
         return $game;
     }
 
+    /**
+     * Returns string message to display to user.
+     *
+     * @return string
+     */
     public function getMessage()
     {
         if ($this->_stale) {
@@ -226,6 +436,11 @@ class tictactoe
         return empty($this->_message) ? 'Your turn...' : $this->_message;
     }
 
+    /**
+     * Returns HTML string representation of the board.
+     *
+     * @return string
+     */
     public function render()
     {
         $html = null;
@@ -279,13 +494,33 @@ class tictactoe
         return '<table>' . $html . '</table>';
     }
 
+    /**
+     * Returns CSS class name to use when rendering a cell.
+     *
+     * @return string
+     */
     protected function _getCellClass($row, $col)
     {
+        $class = null;
+
+        // Is this cell part of the winning solution?
         if (isset($this->_winner[$row][$col]) && $this->_winner[$row][$col]) {
-            return 'winner';
+            $class = 'winner';
         }
+
+        return $class;
     }
 
+    /**
+     * Returns HTML to represent a board's cell
+     *
+     * @param int    $row    Cell row number
+     * @param int    $col    Cell column number
+     * @param string $marker String to mark the cell
+     * @param int    $value  Cell's value
+     *
+     * @return string
+     */
     protected function _cellHtml($row, $col, $marker, $value)
     {
         return sprintf(
@@ -451,39 +686,110 @@ class tictactoe
     }
 }
 
-$tictactoe = new tictactoe();
-$status = $tictactoe->getMessage();
-$round = $tictactoe->getRound();
-?>
-<html>
-  <head>
-    <title>Tic-Tac-Toe</title>
-    <style>
-        table {
-            font-size: bigger;
-            width: 10em;
-            heigth: 10em;
-            border: 1px solid black;
-        }
-        .status {
-            background-color: lightyellow;
-        }
-        .winner {
-            background-color: green;
-        }
-    </style>
-  </head>
-  <body>
-    <h1>Tic-Tac-Toe (<?php echo htmlentities($round); ?>)</h1>
-    <div id="tictactoe">
-      <form method="post">
-        <?php echo $tictactoe->render(); ?>
-      </form>
-    </div>
-    <div class="status">
-        <?php echo $status; ?>
-        <br />
-        <a href="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>">Restart game</a>
-    </div>
-  </body>
-</html>
+/**
+ * controller
+ */
+class controller
+{
+    /**
+     * View instance
+     *
+     * @var view
+     */
+    protected $_view;
+
+    /**
+     * Constructor
+     *
+     * @return self
+     */
+    public function __construct()
+    {
+        // Initialize view instance
+        $this->_view = view::getInstance();
+    }
+
+    /**
+     * Dispatches request to proper action and returns generated HTML.
+     *
+     * @return string
+     */
+    public function dispatch()
+    {
+        // All request handled by "play" action
+        $action = 'play';
+
+        // Invoque action
+        return call_user_func(
+            array(
+                $this,
+                $action
+            )
+        );
+    }
+
+    /**
+     * Default action
+     *
+     * @return void
+     */
+    public function play()
+    {
+        // Instantiate model (ie. business logic class)
+        $model = new model;
+        $status = $model->getMessage();
+        $round = $model->getRound();
+
+        // Construct HTML response
+        $this->_view->addTitle(
+            'Tic-Tac-Toe'
+        );
+
+        // Add CSS styles
+        $this->_view->addStyle(
+    <<<EOT
+table {
+    font-size: bigger;
+    width: 10em;
+    heigth: 10em;
+    border: 1px solid black;
+}
+.status {
+    background-color: lightyellow;
+}
+.restart {
+    background-color: silver;
+}
+.winner {
+    background-color: green;
+}
+EOT
+        );
+
+        // Add board in a form
+        $this->_view->addForm(
+            null,
+            'post',
+            $model->render()
+        );
+
+        // Add status/messages div
+        $this->_view->addDiv(
+            'status',
+            $status
+        );
+
+        // Add restart div
+        $this->_view->addDiv(
+            'restart',
+            '<a href="' . htmlentities($_SERVER['PHP_SELF']) . '">Restart</a>'
+        );
+
+        // Return "stringified" view
+        return (string) $this->_view;
+    }
+}
+
+// Instantiate and output dispatched action request response
+$controller = new controller;
+echo $controller->dispatch();

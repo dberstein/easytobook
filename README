@@ -17,9 +17,14 @@ Usage:
 
 Explanation:
 
-It's a single file that contains the "model" (class tictactoe), the "view"
-(the bottom part of the script with mixed HTML/PHP code) and the "controller"
-(the glue between the former two).
+It's a single file that contains the "model" (class model), the "view"
+(class "view") and the "controller" (class "controller").
+
+The script creates an instance of the "controller", and proceeds to dispatch
+the request (action/method controller::play() is hardcoded as there are no
+other routes). The action build in a "view" instance the response (HTML in this
+case), and returns a string representation of it. The string is ultimately
+echoed to STDOUT for display on the browser.
 
 Machine's ticks are stored as -1, human's as 1, and not played yet cells as 0
 values.
