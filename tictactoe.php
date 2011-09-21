@@ -611,6 +611,9 @@ class model
             ),
         );
 
+        // Randomize corners
+        shuffle($corners);
+
         // Action depends on current round
         $round = $this->_round();
         switch ($round) {
