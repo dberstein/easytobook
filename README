@@ -1,0 +1,47 @@
+Tic-Tac-Toe for EasyToBook
+==========================
+
+A bit stupid tic-tac-toe game implemented in PHP 5+ for interaction in
+a browser.
+
+Requirements:
+- Apache
+- PHP 5+ (tested on 5.3.8)
+
+Usage:
+- Machine always makes the first move (plays with "X").
+- Click an available radio button to mark an "O".
+- The script will detect the following scenarios:
+  - One of the players (machine or human) won.
+  - The  game is stale (ie. no one wins).
+
+Explanation:
+
+It's a single file that contains the "model" (class tictactoe), the "view"
+(the bottom part of the script with mixed HTML/PHP code) and the "controller"
+(the glue between the former two).
+
+Machine's ticks are stored as -1, human's as 1, and not played yet cells as 0
+values.
+
+The "board" is stored as a 2-dimensional array. The "solutions" that mark a
+winning position are a pre-calculated array.
+
+In order to reduce memory consumption (not hat its much anyways), the
+solutions are pre-computed in a "normalized" way, ticks are 1 and others are 0.
+This means that after each move we loop through all solutions and check to see
+if the human or the machine matched a winning position. To do this we convert
+those -1, 1 to 1 by multiplying them by themselves (-1*-1=1, 1*1=1). Then the
+solution is "mapped" into the board (ie. when values match keep them, else
+dismiss them). If the mapping matches the solution then we know someone won.
+
+The "stupid" part comes from the machine's playing strategy. Its very simple,
+but guarantees it'll never lose:
+- Machine always makes first move and plays with "X".
+- On 1st move is always for the center of the grid.
+- On 2nd move is for a free corner.
+- On 3rd tries to close game by finishing diagonal.
+- If diagonal not possible then force none wins by blocking human's actions.
+
+Following these rules its not possible for the human to win, at most they can
+obtain a stale.
