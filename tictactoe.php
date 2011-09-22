@@ -594,25 +594,22 @@ class model
         // Grid's opposed corners
         $corners = array(
             array(
-                array(0, 0), // Top left
-                array(2, 2), // Bottom right
-            ),
-            array(
                 array(0, 2), // Top right
                 array(2, 0), // Bottom left
             ),
             array(
-                array(2, 0), // Bottom left
-                array(0, 2), // Top right
-            ),
-            array(
                 array(2, 2), // Bottom right
                 array(0, 0), // Top left
+            ),
+            array(
+                array(0, 0), // Top left
+                array(2, 2), // Bottom right
+            ),
+            array(
+                array(2, 0), // Bottom left
+                array(0, 2), // Top right
             ),
         );
-
-        // Randomize corners
-        shuffle($corners);
 
         // Action depends on current round
         $round = $this->_round();
