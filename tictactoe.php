@@ -592,22 +592,23 @@ class model
     public function play()
     {
         // Grid's opposed corners
+        $maxCoord = self::GRID_SIZE - 1;
         $corners = array(
             array(
-                array(0, 2), // Top right
-                array(2, 0), // Bottom left
+                array(0, $maxCoord), // Top right
+                array($maxCoord, 0), // Bottom left
             ),
             array(
-                array(2, 2), // Bottom right
+                array($maxCoord, $maxCoord), // Bottom right
                 array(0, 0), // Top left
             ),
             array(
                 array(0, 0), // Top left
-                array(2, 2), // Bottom right
+                array($maxCoord, $maxCoord), // Bottom right
             ),
             array(
-                array(2, 0), // Bottom left
-                array(0, 2), // Top right
+                array($maxCoord, 0), // Bottom left
+                array(0, $maxCoord), // Top right
             ),
         );
 
